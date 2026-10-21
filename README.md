@@ -1,9 +1,33 @@
 # playhub
 
-Multiplayer for web games: **lobbies, ready-up, a synchronized start, WebRTC signaling and TURN
-credentials**, self-hosted on one small server. Match traffic goes peer-to-peer over WebRTC data
-channels; the hub only introduces players to each other, so it stays cheap to run (about 0.1 MB of
-memory per connected player).
+**The multiplayer SDK for your vibe-coded web games.** You built a browser game with Claude Code,
+Cursor, Copilot or plain old typing. Now you want friends to play it together. playhub adds online
+multiplayer in a few lines: **lobbies, room codes, ready-up, a synchronized start, and
+peer-to-peer connections between players**, with no game server to write and nothing to pay for if
+you don't want to.
+
+- `npm install @playhub/client` in the game, and one small hub to introduce players to each other.
+- Host the hub on a free VM with Docker, on Cloudflare Workers, or inside your own Node server.
+- Match traffic goes peer-to-peer over WebRTC data channels, so the hub stays cheap (about 0.1 MB of
+  memory per connected player).
+- Works with any engine or none: canvas, Three.js, Phaser, PixiJS, Babylon.js, plain DOM.
+- TypeScript types throughout, MIT licensed.
+
+## Vibe coding with playhub
+
+Point your AI coding assistant at [`llms.txt`](llms.txt), a short, complete guide to the API written
+for AI tools, and ask for what you want. For example:
+
+> Add online multiplayer to my game with playhub. Read
+> https://raw.githubusercontent.com/leonRandip/playhub-sdk/main/llms.txt first. I want a lobby screen
+> with "Create room" (shows the 6-letter code) and "Join room" (enter a code), a ready button, and a
+> countdown when the host starts. The host runs the game and sends state to everyone 20 times a
+> second; other players send their inputs to the host.
+
+For local testing without any server, `InProcessHub` from `@playhub/hub` runs the hub inside the
+same process.
+
+## Inside the repo
 
 ```
 packages/protocol   @playhub/protocol   zod wire schemas shared by hub and clients

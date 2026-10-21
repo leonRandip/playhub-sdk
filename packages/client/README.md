@@ -1,6 +1,7 @@
 # @playhub/client
 
-Browser SDK for [playhub](https://github.com/leonRandip/playhub): connect to a playhub hub, list,
+The multiplayer SDK for your vibe-coded web games. Browser side of
+[playhub](https://github.com/leonRandip/playhub-sdk): connect to a playhub hub, list,
 create and join rooms, ready up, start together, and talk to the other players over WebRTC data
 channels.
 
@@ -26,4 +27,4 @@ const room = await hub.create({ name: 'Fun', visibility: 'public', settings: {},
 - `SignalingTransport`: how `HubClient` reaches the hub. `WebSocketTransport` is the default (from
   `url`); pass `transport` instead to use your own back end.
 
-See the [repository README](https://github.com/leonRandip/playhub#readme) for the full flow. MIT licensed.
+See the [repository README](https://github.com/leonRandip/playhub-sdk#readme) for the full flow. MIT licensed.

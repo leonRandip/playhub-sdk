@@ -1,6 +1,6 @@
 # @playhub/hub
 
-The self-hosted server of [playhub](https://github.com/leonRandip/playhub): rooms, the WebRTC
+The self-hosted server of [playhub](https://github.com/leonRandip/playhub-sdk): rooms, the WebRTC
 signaling relay, TURN credentials and the game registry, for any number of web games on one small
 server. It never sees match traffic; players talk peer-to-peer.
 
@@ -37,4 +37,4 @@ Fastify, for runtimes that bring their own WebSockets (see `@playhub/cloudflare`
 
 `registerHub(app, options)` mounts it on an existing Fastify app that already has
 `@fastify/websocket` registered. Configuration, limits and deployment:
-[docs](https://github.com/leonRandip/playhub/tree/main/docs). MIT licensed.
+[docs](https://github.com/leonRandip/playhub-sdk/tree/main/docs). MIT licensed.

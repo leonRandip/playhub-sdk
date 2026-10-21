@@ -18,10 +18,10 @@
     "prettier": "3.9.9",
     "typescript": "6.0.3"
   },
-  "description": "Multiplayer for web games: lobbies, WebRTC signaling and TURN, self-hosted on one small server.",
+  "description": "The multiplayer SDK for your vibe-coded web games: lobbies, room codes, WebRTC peer-to-peer and TURN, self-hosted or on Cloudflare.",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leonRandip/playhub.git"
+    "url": "git+https://github.com/leonRandip/playhub-sdk.git"
   }
 }

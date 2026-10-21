@@ -1,6 +1,6 @@
 # @playhub/protocol
 
-The wire protocol of [playhub](https://github.com/leonRandip/playhub): zod schemas and types for
+The wire protocol of [playhub](https://github.com/leonRandip/playhub-sdk): zod schemas and types for
 everything a game client and the hub say to each other over `wss://…/v1/lobby`, plus the profanity
 filter both sides use for player and room names.
 

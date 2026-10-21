@@ -1,16 +1,16 @@
 {
   "name": "@playhub/client",
-  "description": "Browser SDK for playhub: rooms, ready-up, synchronized start and WebRTC peer links for web games.",
+  "description": "Multiplayer SDK for vibe-coded web games: rooms, room codes, ready-up, synchronized start and WebRTC peer-to-peer links.",
   "version": "0.1.0",
   "license": "MIT",
-  "author": "leonRandip",
+  "author": "Maria Randip Leon K S",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leonRandip/playhub.git",
+    "url": "git+https://github.com/leonRandip/playhub-sdk.git",
     "directory": "packages/client"
   },
-  "homepage": "https://github.com/leonRandip/playhub#readme",
-  "bugs": "https://github.com/leonRandip/playhub/issues",
+  "homepage": "https://github.com/leonRandip/playhub-sdk#readme",
+  "bugs": "https://github.com/leonRandip/playhub-sdk/issues",
   "engines": {
     "node": ">=22.12"
   },
@@ -24,7 +24,14 @@
     "lobby",
     "signaling",
     "browser-games",
-    "sdk"
+    "sdk",
+    "vibe-coding",
+    "vibe-coded",
+    "multiplayer-sdk",
+    "web-games",
+    "html5-games",
+    "realtime",
+    "typescript"
   ],
   "type": "module",
   "sideEffects": false,

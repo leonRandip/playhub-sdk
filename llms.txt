@@ -1,0 +1,100 @@
+# playhub
+
+> Multiplayer SDK for web games (including vibe-coded ones): lobbies, room codes, ready-up, a
+> synchronized start and WebRTC peer-to-peer links between players. A small hub introduces players;
+> game traffic then goes directly between browsers. TypeScript, MIT.
+
+Repository: https://github.com/leonRandip/playhub-sdk
+
+## Packages
+
+- `@playhub/client`: browser SDK. Use this in the game.
+- `@playhub/hub`: the hub server (Node 22+). `npx @playhub/hub` with `GAMES_FILE=games.json`, or
+  `buildServer` / `registerHub` inside a Fastify app, or `InProcessHub` with no network (tests, local play).
+- `@playhub/cloudflare`: the same hub as a Cloudflare Worker + Durable Object (`wrangler deploy`).
+- `@playhub/protocol`: wire schemas (zod). Rarely used directly.
+
+## Register the game with the hub (games.json)
+
+```json
+[{ "id": "my-game", "name": "My Game", "origins": ["https://my-game.example.com", "http://localhost:5173"], "maxPlayers": 4 }]
+```
+
+`id` is lower-case letters, digits and dashes (2-32 chars). `origins` lists the web origins allowed to
+connect (empty = any). Optional `settings` validates room settings, e.g.
+`{ "mode": { "type": "string", "enum": ["classic", "blitz"] }, "rounds": { "type": "number", "integer": true, "min": 1, "max": 9 } }`.
+
+## Connect
+
+```ts
+import { HubClient } from '@playhub/client';
+
+// Keep the id stable per device (localStorage): reconnecting with it gets the seat back.
+const id = localStorage.playerId ??= crypto.randomUUID();
+const hub = new HubClient({
+  url: 'wss://YOUR-HUB/v1/lobby', // ws://localhost:8080/v1/lobby in development
+  game: 'my-game',
+  player: () => ({ id, name: 'Ada', profile: { color: 'red' } }), // profile: anything others should see, ≤1 KB
+});
+hub.onConnection = (connected) => {}; // show "connecting…" until true
+```
+
+`hub.connected`, `hub.fatalError` (unknown game, wrong origin: don't retry), `hub.queue` / `hub.onQueue`
+(the hub is full and you're waiting in line; `hub.boost()` moves up once).
+
+## Rooms
+
+```ts
+const rooms = await hub.list(); // public rooms: { code, name, hostName, playerCount, maxPlayers, started, settings }
+const room = await hub.create({ name: 'Fun', visibility: 'public', settings: {}, maxPlayers: 4 }); // all four fields required
+await hub.join('ABCDEF'); // codes are 6 letters; case doesn't matter
+hub.leave();
+hub.onRoomClosed = (reason) => {}; // 'idle' | 'expired' | 'disconnected'
+```
+
+`create` / `join` reject with a `HubError` whose `code` is e.g. `room_not_found`, `room_full`,
+`room_started`, `bad_settings`, `rate_limited`, `timeout`, `unreachable`.
+
+## In a room: `hub.room` (a LiveRoom)
+
+- `players` (`{ id, name, profile, ready, host, away? }[]`), `hosting`, `you`, `canStart`, `phase` ('lobby' | 'preparing' | 'racing'), `closesInSeconds`, `linkStatus`.
+- `setReady(true)`; host: `start()` once `canStart` (everyone ready, at least 2 players).
+- Poll events every frame: `for (const e of hub.room?.tick() ?? [])`
+  - `prepare` → load the level, then `room.prepared(true)` (or `prepared(false, reason)` to call it off)
+  - `go` → `{ startInMs }`: start the countdown so it ends `startInMs` from now (same moment for everyone)
+  - `joined` / `left` / `ready` (`{ name }`), `abort`, `linkLost` (client lost the host for good)
+- Host after a match: `reopen()` returns the room to the lobby for a rematch.
+
+## Game traffic (peer-to-peer, host is the referee)
+
+Every player links directly to the room's host (a star). Messages are JSON-serializable values.
+
+```ts
+// host
+room.onClientMessage = (fromId, msg) => applyInput(fromId, msg);
+room.broadcast({ t: 'state', world }); // to every player
+room.sendTo(playerId, { t: 'hello' });
+// other players
+room.onHostMessage = (msg) => render(msg);
+room.sendToHost({ t: 'input', keys });
+```
+
+Typical loop: clients send inputs; the host simulates and broadcasts state 10-30 times a second.
+There is no server-side game logic and the host can cheat; fine for casual and co-op games.
+
+## Run a hub
+
+- Local: `GAMES_FILE=games.json npx @playhub/hub` → `ws://localhost:8080/v1/lobby`, `GET /healthz`.
+- Server: Docker Compose with Caddy (HTTPS) in `deploy/`; see `docs/DEPLOY.md`.
+- Cloudflare: `services/cloudflare` (`wrangler deploy`), URL `wss://<worker>/v1/lobby`.
+- TURN relay for players behind strict NATs: `TURN_PROVIDER=cloudflare|coturn|static|none`.
+
+## Tests without a network
+
+```ts
+import { InProcessHub, parseGames } from '@playhub/hub';
+const hub = new InProcessHub({ games: parseGames([{ id: 'my-game' }]) });
+const client = new HubClient({ transport: hub.transport(), game: 'my-game', player: () => ({ id: 'a', name: 'A' }) });
+```
+
+Pass `createLink` to `HubClient` to replace WebRTC links with fakes in tests.

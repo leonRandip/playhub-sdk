@@ -3,14 +3,14 @@
   "description": "Run a playhub hub on Cloudflare: a Durable Object hosting the registry, speaking the playhub protocol over WebSocket.",
   "version": "0.1.0",
   "license": "MIT",
-  "author": "leonRandip",
+  "author": "Maria Randip Leon K S",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leonRandip/playhub.git",
+    "url": "git+https://github.com/leonRandip/playhub-sdk.git",
     "directory": "services/cloudflare"
   },
-  "homepage": "https://github.com/leonRandip/playhub#readme",
-  "bugs": "https://github.com/leonRandip/playhub/issues",
+  "homepage": "https://github.com/leonRandip/playhub-sdk#readme",
+  "bugs": "https://github.com/leonRandip/playhub-sdk/issues",
   "keywords": [
     "multiplayer",
     "webrtc",
@@ -21,7 +21,14 @@
     "signaling",
     "cloudflare",
     "durable-objects",
-    "workers"
+    "workers",
+    "vibe-coding",
+    "vibe-coded",
+    "multiplayer-sdk",
+    "web-games",
+    "html5-games",
+    "realtime",
+    "typescript"
   ],
   "type": "module",
   "sideEffects": false,

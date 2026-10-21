@@ -1,6 +1,6 @@
 # @playhub/cloudflare
 
-Run a [playhub](https://github.com/leonRandip/playhub) hub on Cloudflare instead of a server: a
+Run a [playhub](https://github.com/leonRandip/playhub-sdk) hub on Cloudflare instead of a server: a
 Worker routes lobby connections to a Durable Object that runs the same registry and gateway as the
 Node hub. Clients don't change; point `HubClient` at the Worker's URL.
 
@@ -11,7 +11,7 @@ new HubClient({ url: 'wss://playhub.<you>.workers.dev/v1/lobby', game: 'my-game'
 ## Deploy
 
 1. Edit `wrangler.toml`: your games under `[vars] GAMES` (same format as `games.json`, see
-   [ADDING-A-GAME](https://github.com/leonRandip/playhub/blob/main/docs/ADDING-A-GAME.md)) and
+   [ADDING-A-GAME](https://github.com/leonRandip/playhub-sdk/blob/main/docs/ADDING-A-GAME.md)) and
    `TURN_PROVIDER`.
 2. Secrets with `wrangler secret put`, e.g. `CLOUDFLARE_TURN_KEY_ID` and
    `CLOUDFLARE_TURN_API_TOKEN` for `TURN_PROVIDER=cloudflare`.
