@@ -63,7 +63,7 @@ services:
   # Only with `--profile coturn`: your own relay, for a server with the UDP ports open.
   coturn:
     profiles: ['coturn']
-    image: coturn/coturn:4.6@sha256:71c3c990283385567f11794ee692e3a47b66fd9b0bb39e42afbe776e331dd888
+    image: coturn/coturn:4.18@sha256:bbefd3e1fdfdc0d58770fe01b581fd8b00d9f3a5580d00acb77cf719a6bc78e3
     restart: unless-stopped
     # Host networking: TURN needs the real UDP source/relay ports, and a Docker port range is slow.
     network_mode: host
