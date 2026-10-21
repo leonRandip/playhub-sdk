@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+deploy/data/
+deploy/games.json
+load-report/
+bundle/

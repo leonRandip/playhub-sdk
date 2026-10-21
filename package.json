@@ -1,0 +1,27 @@
+{
+  "name": "playhub",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.25.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter @playhub/hub dev",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "hub-load": "pnpm --filter @playhub/hub load"
+  },
+  "devDependencies": {
+    "prettier": "3.9.9",
+    "typescript": "6.0.3"
+  },
+  "description": "Multiplayer for web games: lobbies, WebRTC signaling and TURN, self-hosted on one small server.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leonRandip/playhub.git"
+  }
+}

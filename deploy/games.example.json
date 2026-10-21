@@ -1,0 +1,32 @@
+[
+  {
+    "id": "my-game",
+    "name": "My Game",
+    "origins": [
+      "https://my-game.example.com",
+      "https://*.my-portal.example",
+      "http://localhost:5173"
+    ],
+    "maxPlayers": 8,
+    "settings": {
+      "map": {
+        "type": "string",
+        "enum": ["forest", "desert", "city"]
+      },
+      "mode": {
+        "type": "string",
+        "enum": ["classic", "blitz"]
+      },
+      "rounds": {
+        "type": "number",
+        "integer": true,
+        "min": 1,
+        "max": 20
+      },
+      "friendlyFire": {
+        "type": "boolean",
+        "optional": true
+      }
+    }
+  }
+]

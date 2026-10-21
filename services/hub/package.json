@@ -1,0 +1,78 @@
+{
+  "name": "@playhub/hub",
+  "description": "Self-hosted playhub server: lobbies, WebRTC signaling relay and TURN credentials for any number of web games.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "leonRandip",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leonRandip/playhub.git",
+    "directory": "services/hub"
+  },
+  "homepage": "https://github.com/leonRandip/playhub#readme",
+  "bugs": "https://github.com/leonRandip/playhub/issues",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "keywords": [
+    "multiplayer",
+    "webrtc",
+    "p2p",
+    "peer-to-peer",
+    "game",
+    "gamedev",
+    "lobby",
+    "signaling",
+    "browser-games",
+    "server",
+    "fastify",
+    "turn"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "load": "tsx tools/load.ts",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=bundle/index.js --external:bufferutil --external:utf-8-validate --banner:js=\"import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);\""
+  },
+  "dependencies": {
+    "@fastify/websocket": "11.3.1",
+    "@playhub/protocol": "workspace:*",
+    "fastify": "5.12.5"
+  },
+  "devDependencies": {
+    "@playhub/client": "workspace:*",
+    "@types/node": "26.6.3",
+    "@types/ws": "8.18.1",
+    "esbuild": "^0.28.2",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2",
+    "ws": "8.22.0"
+  },
+  "exports": {
+    ".": "./src/embed.ts"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/embed.d.ts",
+        "default": "./dist/embed.js"
+      }
+    },
+    "bin": {
+      "playhub-hub": "./dist/index.js"
+    }
+  }
+}

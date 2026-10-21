@@ -1,0 +1,61 @@
+{
+  "name": "@playhub/client",
+  "description": "Browser SDK for playhub: rooms, ready-up, synchronized start and WebRTC peer links for web games.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "leonRandip",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leonRandip/playhub.git",
+    "directory": "packages/client"
+  },
+  "homepage": "https://github.com/leonRandip/playhub#readme",
+  "bugs": "https://github.com/leonRandip/playhub/issues",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "keywords": [
+    "multiplayer",
+    "webrtc",
+    "p2p",
+    "peer-to-peer",
+    "game",
+    "gamedev",
+    "lobby",
+    "signaling",
+    "browser-games",
+    "sdk"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@playhub/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  }
+}

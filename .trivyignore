@@ -1,0 +1,11 @@
+# Accepted findings. Each line expires, so none is forgotten (Trivy ignores a line only until its date).
+#
+# libssl3 from the Debian 12 layer of the distroless Node base image. Debian has a fix (3.0.20)
+# but the newest distroless image is not rebuilt with it yet. The hub does not use this library:
+# Node ships its own OpenSSL (3.5.x). Re-check when Dependabot proposes a new base image digest.
+CVE-2026-28387 exp:2026-11-04
+CVE-2026-28388 exp:2026-11-04
+CVE-2026-28389 exp:2026-11-04
+CVE-2026-28390 exp:2026-11-04
+CVE-2026-31789 exp:2026-11-04
+CVE-2026-45447 exp:2026-11-04

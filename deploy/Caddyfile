@@ -1,0 +1,5 @@
+# Caddy terminates TLS (automatic Let's Encrypt) and proxies HTTP + WebSocket to the hub.
+{$HUB_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy hub:8080
+}

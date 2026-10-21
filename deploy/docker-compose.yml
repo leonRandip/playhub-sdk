@@ -1,0 +1,84 @@
+# One server. Default stack: Caddy + hub (signaling only). The TURN relay comes from the provider chosen
+# by TURN_PROVIDER in .env (cloudflare, static, none) — or from our own coturn: enable that with
+#   docker compose --profile coturn up -d      (and TURN_PROVIDER=coturn)
+# Copy .env.example → .env and games.example.json → games.json first.
+services:
+  caddy:
+    image: caddy:2@sha256:3422ce6de165df66534f9b9ba50efaf457114ec961763cc52f5dbdaac2972d73
+    restart: unless-stopped
+    # Only TCP: HTTP/3 (UDP 443) is not opened in the cloud firewall anyway, so don't publish it.
+    ports: ['80:80', '443:443']
+    # Hardening: no Linux capabilities except binding ports 80/443, no privilege gain, read-only
+    # filesystem (certificates live in the named volumes below), bounded memory and processes.
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ['no-new-privileges:true']
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 200m
+    pids_limit: 100
+    environment:
+      HUB_DOMAIN: ${HUB_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [hub]
+
+  hub:
+    # Built from this repo unless HUB_IMAGE names a prebuilt image.
+    image: ${HUB_IMAGE:-playhub-hub:local}
+    build: { context: .., dockerfile: services/hub/Dockerfile }
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      GAMES_FILE: /config/games.json
+      MAX_CONNECTIONS_PER_IP: ${MAX_CONNECTIONS_PER_IP:-20}
+      # Admission control: players served at once; the rest wait in a line (see docs/ARCHITECTURE.md).
+      MAX_ACTIVE: ${MAX_ACTIVE:-400}
+      MAX_QUEUE: ${MAX_QUEUE:-1000}
+      TURN_PROVIDER: ${TURN_PROVIDER:-none}
+      TURN_TTL_SECONDS: ${TURN_TTL_SECONDS:-}
+      # cloudflare
+      CLOUDFLARE_TURN_KEY_ID: ${CLOUDFLARE_TURN_KEY_ID:-}
+      CLOUDFLARE_TURN_API_TOKEN: ${CLOUDFLARE_TURN_API_TOKEN:-}
+      # coturn (our own server)
+      TURN_HOST: ${TURN_HOST:-}
+      TURN_SECRET: ${TURN_SECRET:-}
+      # static list (any provider with fixed credentials)
+      TURN_STATIC_JSON: ${TURN_STATIC_JSON:-}
+    volumes:
+      - ./games.json:/config/games.json:ro
+    # Hardening: the image is distroless and non-root already; also no capabilities, no privilege
+    # gain, read-only filesystem, bounded memory and processes. Nothing is published: only Caddy
+    # (on the internal network) can reach it.
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    read_only: true
+    tmpfs: [/tmp]
+    pids_limit: 100
+    mem_limit: 400m
+    logging: { driver: json-file, options: { max-size: '10m', max-file: '3' } }
+
+  # Only with `--profile coturn`: your own relay, for a server with the UDP ports open.
+  coturn:
+    profiles: ['coturn']
+    image: coturn/coturn:4.6@sha256:71c3c990283385567f11794ee692e3a47b66fd9b0bb39e42afbe776e331dd888
+    restart: unless-stopped
+    # Host networking: TURN needs the real UDP source/relay ports, and a Docker port range is slow.
+    network_mode: host
+    command:
+      - -c
+      - /etc/coturn/turnserver.conf
+      - --static-auth-secret=${TURN_SECRET:-}
+      - --external-ip=${EXTERNAL_IP:-}/${PRIVATE_IP:-}
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+    security_opt: ['no-new-privileges:true']
+    pids_limit: 200
+    mem_limit: 256m
+    logging: { driver: json-file, options: { max-size: '10m', max-file: '3' } }
+
+volumes:
+  caddy_data:
+  caddy_config:

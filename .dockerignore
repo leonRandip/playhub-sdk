@@ -1,0 +1,7 @@
+**/node_modules
+**/dist
+.git
+.env
+deploy/data
+docs
+**/bundle

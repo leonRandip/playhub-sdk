@@ -1,0 +1,20 @@
+# Weekly pull requests for out-of-date things: npm packages, the base images in the Dockerfile and
+# the compose file (their pinned digests move), and the GitHub Actions the workflows use.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: docker
+    directory: /services/hub
+    schedule: { interval: weekly }
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }

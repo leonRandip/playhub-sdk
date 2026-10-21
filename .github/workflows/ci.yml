@@ -1,0 +1,56 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+  # New vulnerabilities appear in code that has not changed: scan weekly as well.
+  schedule:
+    - cron: '17 4 * * 1'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  # Known vulnerabilities in the npm packages that end up in the image.
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level=high
+
+  # The image we ship, and the files that define how it runs. Fails on any HIGH/CRITICAL finding
+  # that has a fix, except the dated, explained entries in .trivyignore.
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the hub image
+        run: docker build -f services/hub/Dockerfile -t playhub-hub:ci .
+      - name: Trivy image scan (OS packages and bundled libraries)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: playhub-hub:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          exit-code: '1'
+      - name: Trivy Dockerfile and config scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: MEDIUM,HIGH,CRITICAL
+          exit-code: '1'
