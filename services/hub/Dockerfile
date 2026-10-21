@@ -3,7 +3,7 @@
 # Stage 1 bundles the hub (and the protocol package it uses) into ONE JavaScript file.
 # Stage 2 is a distroless Node image: no shell, no package manager, no tsx, no node_modules, runs as
 # a non-root user. The base image is pinned by digest; Dependabot proposes updates.
-FROM node:22-alpine AS build
+FROM node:25-alpine AS build
 RUN corepack enable
 WORKDIR /repo
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
