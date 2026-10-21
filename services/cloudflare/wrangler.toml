@@ -1,0 +1,22 @@
+# playhub on Cloudflare. Edit GAMES (and TURN), then: pnpm --filter @playhub/cloudflare deploy
+# Secrets (TURN tokens) go in with `wrangler secret put CLOUDFLARE_TURN_API_TOKEN`, not here.
+name = "playhub"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+# node:crypto, for coturn credentials (createTurnProvider).
+compatibility_flags = ["nodejs_compat"]
+
+[[durable_objects.bindings]]
+name = "PLAYHUB"
+class_name = "PlayhubHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PlayhubHub"]
+
+[vars]
+TURN_PROVIDER = "none"
+# Same format as games.json (docs/ADDING-A-GAME.md).
+GAMES = [
+  { id = "my-game", name = "My Game", origins = ["https://my-game.example.com", "http://localhost:5173"], maxPlayers = 8 },
+]

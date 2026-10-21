@@ -1,0 +1,20 @@
+# The worker under test (started by test/worker.test.ts with `wrangler dev`).
+name = "playhub-test"
+main = "../src/index.ts"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[durable_objects.bindings]]
+name = "PLAYHUB"
+class_name = "PlayhubHub"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PlayhubHub"]
+
+[vars]
+TURN_PROVIDER = "none"
+GAMES = [
+  { id = "demo", maxPlayers = 3, settings = { mode = { type = "string", enum = ["a", "b"] } } },
+  { id = "other", maxPlayers = 2 },
+]

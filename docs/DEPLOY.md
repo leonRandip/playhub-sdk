@@ -1,5 +1,8 @@
 # Deploying
 
+This page is about a server of your own. To run the hub on Cloudflare Workers instead (no server,
+no Docker), see [services/cloudflare](../services/cloudflare/README.md).
+
 Any Linux server with Docker and a domain name works. A 1 GB VM is plenty for signaling: the hub
 holds about 0.1 MB per connected player (measure your own with `pnpm hub-load`).
 

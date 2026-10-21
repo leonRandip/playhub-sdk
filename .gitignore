@@ -7,3 +7,4 @@ deploy/data/
 deploy/games.json
 load-report/
 bundle/
+.wrangler/

@@ -55,7 +55,8 @@
     "ws": "8.22.0"
   },
   "exports": {
-    ".": "./src/embed.ts"
+    ".": "./src/embed.ts",
+    "./core": "./src/core.ts"
   },
   "files": [
     "dist",
@@ -69,6 +70,10 @@
       ".": {
         "types": "./dist/embed.d.ts",
         "default": "./dist/embed.js"
+      },
+      "./core": {
+        "types": "./dist/core.d.ts",
+        "default": "./dist/core.js"
       }
     },
     "bin": {

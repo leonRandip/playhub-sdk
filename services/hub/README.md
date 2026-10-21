@@ -32,6 +32,9 @@ const hub = new InProcessHub({ games: parseGames([{ id: 'my-game' }]) });
 const client = new HubClient({ transport: hub.transport(), game: 'my-game', player });
 ```
 
+`@playhub/hub/core` has the registry, `Gateway`, games, TURN providers and the in-process hub without
+Fastify, for runtimes that bring their own WebSockets (see `@playhub/cloudflare`).
+
 `registerHub(app, options)` mounts it on an existing Fastify app that already has
 `@fastify/websocket` registered. Configuration, limits and deployment:
 [docs](https://github.com/leonRandip/playhub/tree/main/docs). MIT licensed.

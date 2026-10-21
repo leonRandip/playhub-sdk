@@ -1,0 +1,65 @@
+{
+  "name": "@playhub/cloudflare",
+  "description": "Run a playhub hub on Cloudflare: a Durable Object hosting the registry, speaking the playhub protocol over WebSocket.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "leonRandip",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leonRandip/playhub.git",
+    "directory": "services/cloudflare"
+  },
+  "homepage": "https://github.com/leonRandip/playhub#readme",
+  "bugs": "https://github.com/leonRandip/playhub/issues",
+  "keywords": [
+    "multiplayer",
+    "webrtc",
+    "p2p",
+    "game",
+    "gamedev",
+    "lobby",
+    "signaling",
+    "cloudflare",
+    "durable-objects",
+    "workers"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "dist",
+    "src",
+    "wrangler.toml",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@playhub/hub": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261021.1",
+    "@playhub/client": "workspace:*",
+    "@types/node": "26.6.3",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2",
+    "wrangler": "4.151.3"
+  }
+}

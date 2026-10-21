@@ -53,6 +53,13 @@ backoff; a fatal one (refused for good) is not.
   Each `hub.transport()` is one address for the per-address limits. The network layer's protections
   (admission line, socket caps, message budget, hello timeout, heartbeats) do not apply; everything
   the registry enforces does. The SDK tests run against both this and the WebSocket hub.
+
+On the server side, `Gateway` (`services/hub/src/gateway.ts`) is everything between a raw
+connection and the registry: connection caps, the hello timeout, the message budget, the admission
+line and sweeping. The Fastify server and the Cloudflare Durable Object (`services/cloudflare`) both
+feed sockets through it, so a hub on Cloudflare is protected the same way as one on a VM.
+`@playhub/hub/core` exports it all without Fastify.
+
 - Your own: pass `transport` instead of `url`.
 
 ```ts

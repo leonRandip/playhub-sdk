@@ -9,6 +9,7 @@ memory per connected player).
 packages/protocol   @playhub/protocol   zod wire schemas shared by hub and clients
 packages/client     @playhub/client     browser SDK: HubClient, LiveRoom, PeerLink
 services/hub        @playhub/hub        the server: rooms, signaling relay, TURN creds, game registry
+services/cloudflare @playhub/cloudflare the same hub as a Cloudflare Worker + Durable Object
 deploy/             docker compose (Caddy + hub, optional coturn)
 docs/               architecture, adding a game, admission control, deploying
 ```
@@ -108,6 +109,9 @@ pnpm hub-load   # load test: writes load-report/
 
 [docs/DEPLOY.md](docs/DEPLOY.md): Docker Compose on any Linux server with a domain. Caddy gets the
 TLS certificate; the hub needs no open UDP ports unless you run your own coturn.
+
+No server at all: [services/cloudflare](services/cloudflare) runs the same hub on Cloudflare
+Workers with a Durable Object (`wrangler deploy`).
 
 ## Add a game
 
