@@ -48,6 +48,11 @@ so a new back end only moves messages. `HubClient` owns retries: a non-fatal clo
 backoff; a fatal one (refused for good) is not.
 
 - `WebSocketTransport` (the default, from `url`): JSON text frames to a hub. Close code 4400 is fatal.
+- `InProcessHub` / `InProcessTransport` (`@playhub/hub`): no network; clients in the same process
+  talk straight to a `Registry`. Messages still go through JSON, one microtask later and in order.
+  Each `hub.transport()` is one address for the per-address limits. The network layer's protections
+  (admission line, socket caps, message budget, hello timeout, heartbeats) do not apply; everything
+  the registry enforces does. The SDK tests run against both this and the WebSocket hub.
 - Your own: pass `transport` instead of `url`.
 
 ```ts

@@ -22,6 +22,16 @@ const app = await buildServer({
 await app.listen({ port: 8080 });
 ```
 
+Or with no network at all, for tests, local development or local multiplayer:
+
+```ts
+import { InProcessHub, parseGames } from '@playhub/hub';
+import { HubClient } from '@playhub/client';
+
+const hub = new InProcessHub({ games: parseGames([{ id: 'my-game' }]) });
+const client = new HubClient({ transport: hub.transport(), game: 'my-game', player });
+```
+
 `registerHub(app, options)` mounts it on an existing Fastify app that already has
 `@fastify/websocket` registered. Configuration, limits and deployment:
 [docs](https://github.com/leonRandip/playhub/tree/main/docs). MIT licensed.

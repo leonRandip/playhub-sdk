@@ -24,7 +24,8 @@ docs/               architecture, adding a game, admission control, deploying
 - **TURN from anywhere:** Cloudflare Realtime, your own coturn, any static credentials, or STUN only.
   A failing provider never blocks a join.
 - **Swappable signaling:** `HubClient` talks to the hub through a `SignalingTransport`. WebSocket is
-  built in; any back end that can carry the protocol's messages can plug in.
+  built in, and `@playhub/hub` has an in-process hub with no network for tests and local play;
+  any back end that can carry the protocol's messages can plug in.
 - **Many games, one server:** each game is a row in `games.json` with its own allowed origins,
   player cap and optional settings schema.
 - **Built for the open internet:** per-address connection and room caps, message budgets, a throttle
