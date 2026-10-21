@@ -8,6 +8,7 @@
  */
 import type {
   AbortReason,
+  ClientMessageInput,
   LobbyPlayer,
   PrepareFailReason,
   RoomPhase,
@@ -81,7 +82,7 @@ export class LiveRoom {
   constructor(
     summary: RoomSummary,
     readonly myId: string,
-    private readonly send: (msg: unknown) => void,
+    private readonly send: (msg: ClientMessageInput) => void,
     private readonly iceServers: () => RTCIceServer[],
     opts: { tuning?: Partial<RoomTuning>; createLink?: LinkFactory } = {},
   ) {

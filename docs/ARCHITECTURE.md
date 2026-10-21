@@ -38,6 +38,29 @@ the socket; recoverable ones (`room_not_found`, `room_full`, `room_started`, `ba
 Reconnecting with the same player id resumes your seat; a stale socket closing later does not evict a
 newer one.
 
+## Signaling transports (`packages/client/src/signaling.ts`)
+
+`HubClient` does not care how its messages travel. A `SignalingTransport` carries protocol messages
+(`ClientMessage` out, `ServerMessage` back) and nothing else: one `open()` per connection attempt,
+then `send`, `close` and three events (`onOpen`, `onMessage`, `onClose{fatal}`). The hello, pending
+requests, the waiting line, the reconnect grace period and the `LiveRoom` all stay in `HubClient`,
+so a new back end only moves messages. `HubClient` owns retries: a non-fatal close is retried with
+backoff; a fatal one (refused for good) is not.
+
+- `WebSocketTransport` (the default, from `url`): JSON text frames to a hub. Close code 4400 is fatal.
+- Your own: pass `transport` instead of `url`.
+
+```ts
+const hub = new HubClient({ transport: myTransport, game: 'my-game', player: () => me });
+```
+
+What a back end has to provide depends on where the rules live. The hub enforces them (rate limits,
+room caps, code guessing, admission, who is host), so a transport that reaches **a trusted
+authority speaking the protocol** gets every feature: the hub over WebSocket, or the same registry
+code running somewhere else (a Cloudflare Durable Object, an in-process hub). A transport over **a
+plain relay** (a hosted pub/sub channel) has no trusted party, so it must elect one (for example the
+room's host) to answer as the authority, and the server-side protections become best effort.
+
 ## TURN
 
 The hub does not care where the relay comes from. A `TurnProvider` (`services/hub/src/turn.ts`)

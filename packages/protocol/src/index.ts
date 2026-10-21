@@ -167,6 +167,8 @@ export const ClientMessage = z.discriminatedUnion('type', [
   LobbyBoost,
 ]);
 export type ClientMessage = z.infer<typeof ClientMessage>;
+/** What a client may send: defaulted fields (a player's `profile`) may be left out. */
+export type ClientMessageInput = z.input<typeof ClientMessage>;
 
 // ── Hub → client ─────────────────────────────────────────────────────────────
 

@@ -1,11 +1,14 @@
+export { HubClient, HubError, type QueueInfo, type HubClientOptions } from './hub-client.ts';
 export {
-  HubClient,
-  HubError,
-  type QueueInfo,
-  type HubClientOptions,
+  WebSocketTransport,
+  CLOSE_PROTOCOL,
+  type SignalingTransport,
+  type SignalingConnection,
+  type SignalingEvents,
   type SocketFactory,
   type SocketLike,
-} from './hub-client.ts';
+  type WebSocketTransportOptions,
+} from './signaling.ts';
 export { LiveRoom, DEFAULT_TUNING, LINK_LABEL, type RoomEvent, type RoomTuning } from './room.ts';
 export {
   PeerLink,

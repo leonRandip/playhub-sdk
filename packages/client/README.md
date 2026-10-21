@@ -23,5 +23,7 @@ const room = await hub.create({ name: 'Fun', visibility: 'public', settings: {},
 - `LiveRoom` (`hub.room`): members, readiness, the synchronized start (`tick()` events) and the peer
   links: `sendToHost`, `broadcast`, `sendTo`, `onHostMessage`, `onClientMessage`.
 - `PeerLink`: one WebRTC data channel. Pass your own `createLink` to swap it out (tests do).
+- `SignalingTransport`: how `HubClient` reaches the hub. `WebSocketTransport` is the default (from
+  `url`); pass `transport` instead to use your own back end.
 
 See the [repository README](https://github.com/leonRandip/playhub#readme) for the full flow. MIT licensed.

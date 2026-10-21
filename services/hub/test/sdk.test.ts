@@ -115,7 +115,7 @@ test('a client that loses its socket reconnects and the hub accepts the same id 
   const { make } = await setup();
   const a = await make('a');
   // Drop the socket from our side; HubClient reconnects by itself.
-  (a as unknown as { ws: { close(): void } }).ws.close();
+  (a as unknown as { conn: { close(): void } }).conn.close();
   await until(() => !a.connected);
   await until(() => a.connected);
   await a.create({ name: 'again', visibility: 'private', settings: { mode: 'a' }, maxPlayers: 2 });
@@ -196,7 +196,7 @@ test('a dropped connection keeps the room and its links, shows a countdown, and 
   expect(a.reconnectSecondsLeft).toBeNull();
 
   // a's connection drops (the client reconnects by itself)
-  (a as unknown as { ws: { close(): void } }).ws.close();
+  (a as unknown as { conn: { close(): void } }).conn.close();
   await until(() => !a.connected);
   expect(a.room).toBe(aRoom); // same room object: nothing was torn down
   expect(a.reconnectSecondsLeft).toBeGreaterThan(0);
@@ -238,7 +238,7 @@ test('out of touch longer than the grace period: the seat is gone and onRoomClos
   let reason: string | null = null;
   b.onRoomClosed = (r) => (reason = r);
   // b is away for longer than the hub's 120 ms grace: the client's own first retry is at 250 ms
-  (b as unknown as { ws: { close(): void } }).ws.close();
+  (b as unknown as { conn: { close(): void } }).conn.close();
   await until(() => reason !== null, 5000);
   expect(reason).toBe('disconnected');
   expect(b.room).toBeNull();

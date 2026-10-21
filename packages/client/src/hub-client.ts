@@ -1,11 +1,13 @@
 /**
  * The signaling connection to a playhub hub: room discovery, create/join/leave, and a `LiveRoom`
- * (with its WebRTC links) once you're in one. Reconnects with backoff when the socket drops and
- * resumes your seat by player id.
+ * (with its WebRTC links) once you're in one. Reconnects with backoff when the connection drops and
+ * resumes your seat by player id. How messages travel is up to a `SignalingTransport` (a WebSocket
+ * to a hub unless you pass another).
  */
 import type {
   AbortReason,
   Bag,
+  ClientMessageInput,
   IceServer,
   LobbyErrorCode,
   LobbyPlayer,
@@ -16,38 +18,39 @@ import type {
 import { PROTOCOL_VERSION } from '@playhub/protocol';
 import { LiveRoom, type RoomTuning } from './room.ts';
 import type { LinkFactory } from './peer-link.ts';
+import {
+  WebSocketTransport,
+  type SignalingConnection,
+  type SignalingTransport,
+  type SocketFactory,
+} from './signaling.ts';
 
 const BACKOFF_MS = [250, 500, 1000, 2000];
-/** The hub closes with this code on a protocol-level refusal (bad game/origin/version): retrying
- * would just be refused again. */
-const CLOSE_PROTOCOL = 4400;
 
-/** The slice of the WebSocket API the client uses (lets tests inject a fake). */
-export interface SocketLike {
-  readyState: number;
-  send(data: string): void;
-  close(): void;
-  onopen: ((ev: unknown) => void) | null;
-  onmessage: ((ev: { data: unknown }) => void) | null;
-  onclose: ((ev: { code?: number }) => void) | null;
-}
-export type SocketFactory = (url: string) => SocketLike;
-
-export interface HubClientOptions {
-  /** wss://hub.example.com/v1/lobby */
-  url: string;
+interface CommonOptions {
   /** Game id registered with the hub. */
   game: string;
   /** Called on every (re)connect so the hub always sees the current name/profile. */
   player: () => PlayerInfoInput;
   tuning?: Partial<RoomTuning>;
-  /** Defaults to `new WebSocket(url)`. */
-  socket?: SocketFactory;
   /** Defaults to a real `RTCPeerConnection`. */
   createLink?: LinkFactory;
   /** How long create/join/list wait for the hub before failing, ms. */
   requestTimeoutMs?: number;
 }
+
+/** Either a hub URL (a WebSocket transport is made for you) or a transport of your own. */
+export type HubClientOptions = CommonOptions &
+  (
+    | {
+        /** wss://hub.example.com/v1/lobby */
+        url: string;
+        /** Defaults to `new WebSocket(url)`. */
+        socket?: SocketFactory;
+        transport?: never;
+      }
+    | { transport: SignalingTransport; url?: never; socket?: never }
+  );
 
 interface Pending {
   resolve: (v: unknown) => void;
@@ -73,10 +76,9 @@ export class HubError extends Error {
   }
 }
 
-const OPEN = 1;
-
 export class HubClient {
-  private ws: SocketLike | null = null;
+  private readonly transport: SignalingTransport;
+  private conn: SignalingConnection | null = null;
   private attempt = 0;
   private closedByUser = false;
   private _rooms: RoomSummary[] = [];
@@ -111,6 +113,8 @@ export class HubClient {
   private outageTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private readonly opts: HubClientOptions) {
+    this.transport =
+      opts.transport ?? new WebSocketTransport({ url: opts.url, socket: opts.socket });
     this.connect();
   }
 
@@ -182,12 +186,12 @@ export class HubClient {
   close(): void {
     this.closedByUser = true;
     this.dropRoom();
-    this.ws?.close();
+    this.conn?.close();
   }
 
   // ── plumbing ────────────────────────────────────────────────────────────────────────────────
 
-  private request(kind: 'list' | 'create' | 'join', msg: unknown): Promise<unknown> {
+  private request(kind: 'list' | 'create' | 'join', msg: ClientMessageInput): Promise<unknown> {
     if (!this.connected)
       return Promise.reject(
         this.fatalError ?? new HubError('unreachable', "Can't reach the game server"),
@@ -238,59 +242,54 @@ export class HubClient {
   }
 
   private connect(): void {
-    const ws = this.opts.socket
-      ? this.opts.socket(this.opts.url)
-      : (new WebSocket(this.opts.url) as unknown as SocketLike);
-    this.ws = ws;
     this.setQueue(null);
-    ws.onopen = () => {
-      ws.send(
-        JSON.stringify({
+    const conn: SignalingConnection = this.transport.open({
+      onOpen: () =>
+        conn.send({
           type: 'lobbyHello',
           v: PROTOCOL_VERSION,
           game: this.opts.game,
           player: this.opts.player(),
         }),
-      );
-    };
-    ws.onmessage = (e) => this.onMessage(String(e.data));
-    ws.onclose = (e) => {
-      if (this.ws !== ws) return;
-      this.setConnected(false);
-      this.setQueue(null);
-      if (this._room && !this.closedByUser && e.code !== CLOSE_PROTOCOL) {
-        // Keep the room and its peer links: the hub holds our seat for the grace period, and a
-        // match in progress does not need the hub. Give up if we cannot get back in time.
-        if (this.outageSince === null) {
-          this.outageSince = Date.now();
-          this.outageTimer = setTimeout(() => {
-            this.dropRoom();
-            this.onRoomClosed('disconnected');
-          }, this.graceMs);
-        }
-      } else this.dropRoom();
-      for (const p of this.pending.list.splice(0)) this.settle(p, true, undefined);
-      for (const kind of ['create', 'join'] as const) {
-        this.settle(this.pending[kind], false, new HubError('unreachable', 'Lost the connection'));
-        this.pending[kind] = null;
+      onMessage: (msg) => this.onMessage(msg),
+      onClose: ({ fatal }) => this.onClose(conn, fatal),
+    });
+    this.conn = conn;
+  }
+
+  /** One connection ended: hold or drop the room, fail what was waiting, and retry unless told not to. */
+  private onClose(conn: SignalingConnection, fatal: boolean): void {
+    if (this.conn !== conn) return;
+    this.setConnected(false);
+    this.setQueue(null);
+    if (this._room && !this.closedByUser && !fatal) {
+      // Keep the room and its peer links: the hub holds our seat for the grace period, and a
+      // match in progress does not need the hub. Give up if we cannot get back in time.
+      if (this.outageSince === null) {
+        this.outageSince = Date.now();
+        this.outageTimer = setTimeout(() => {
+          this.dropRoom();
+          this.onRoomClosed('disconnected');
+        }, this.graceMs);
       }
-      if (this.closedByUser || e.code === CLOSE_PROTOCOL) return;
-      const delay = BACKOFF_MS[Math.min(this.attempt++, BACKOFF_MS.length - 1)]!;
-      setTimeout(() => this.connect(), delay);
-    };
-  }
-
-  private send(msg: unknown): void {
-    if (this.ws?.readyState === OPEN) this.ws.send(JSON.stringify(msg));
-  }
-
-  private onMessage(text: string): void {
-    let msg: Record<string, unknown>;
-    try {
-      msg = JSON.parse(text);
-    } catch {
-      return;
+    } else this.dropRoom();
+    for (const p of this.pending.list.splice(0)) this.settle(p, true, undefined);
+    for (const kind of ['create', 'join'] as const) {
+      this.settle(this.pending[kind], false, new HubError('unreachable', 'Lost the connection'));
+      this.pending[kind] = null;
     }
+    if (this.closedByUser || fatal) return;
+    const delay = BACKOFF_MS[Math.min(this.attempt++, BACKOFF_MS.length - 1)]!;
+    setTimeout(() => this.connect(), delay);
+  }
+
+  private send(msg: ClientMessageInput): void {
+    this.conn?.send(msg);
+  }
+
+  private onMessage(raw: unknown): void {
+    if (typeof raw !== 'object' || raw === null) return;
+    const msg = raw as Record<string, unknown>;
     switch (msg['type']) {
       case 'lobbyQueued':
         this.setQueue({
