@@ -1,7 +1,7 @@
 {
   "name": "@playhub/protocol",
   "description": "Wire protocol for playhub: zod schemas shared by the hub and game clients.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "author": "Maria Randip Leon K S",
   "repository": {

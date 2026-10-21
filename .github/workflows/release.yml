@@ -1,5 +1,8 @@
-# On a version tag (v0.1.0): publish the npm packages and push the hub image to GHCR.
-# npm needs the repository secret NPM_TOKEN (an automation token for the @playhub scope).
+# On a version tag (v0.1.1): publish the npm packages and push the hub image to GHCR.
+#
+# npm: trusted publishing (OIDC). No token is stored anywhere: npm trusts this workflow file in this
+# repository, configured per package on npmjs.com (Settings → Trusted Publisher → GitHub Actions:
+# leonRandip / playhub-sdk / release.yml). Provenance is attached automatically.
 name: release
 on:
   push: { tags: ['v*'] }
@@ -7,23 +10,50 @@ on:
 permissions:
   contents: read
   packages: write
-  id-token: write # npm provenance
+  id-token: write # npm trusted publishing (OIDC)
+env:
+  # Dependencies first, so each package's own dependencies are already on npm.
+  PACKAGES: packages/protocol packages/client services/hub services/cloudflare
 jobs:
   npm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+      # Node 24 bundles npm 11; trusted publishing needs npm 11.5.1 or newer.
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm, registry-url: 'https://registry.npmjs.org' }
+        with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm -r publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: 'true'
+      - name: The tag matches every package's version
+        run: |
+          want="${GITHUB_REF_NAME#v}"
+          for d in $PACKAGES; do
+            have=$(node -p "require('./$d/package.json').version")
+            [ "$have" = "$want" ] || { echo "::error::$d is $have but the tag is $GITHUB_REF_NAME"; exit 1; }
+          done
+      # pnpm pack turns workspace:* into real versions and applies publishConfig (dist exports, bin);
+      # npm then publishes the tarballs, since trusted publishing is an npm CLI feature.
+      - name: Pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/packs"
+          for d in $PACKAGES; do (cd "$d" && pnpm pack --pack-destination "$RUNNER_TEMP/packs"); done
+      - name: Publish (trusted publishing, no token)
+        run: |
+          npm --version
+          for d in $PACKAGES; do
+            name=$(node -p "require('./$d/package.json').name")
+            version=$(node -p "require('./$d/package.json').version")
+            # A re-run after a partial failure skips what already went out.
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already on npm, skipping"
+              continue
+            fi
+            file="$RUNNER_TEMP/packs/$(echo "${name#@}" | tr / -)-$version.tgz"
+            npm publish "$file" --access public
+          done
 
   image:
     runs-on: ubuntu-latest

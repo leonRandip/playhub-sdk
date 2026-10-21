@@ -1,7 +1,7 @@
 {
   "name": "@playhub/client",
   "description": "Multiplayer SDK for vibe-coded web games: rooms, room codes, ready-up, synchronized start and WebRTC peer-to-peer links.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "author": "Maria Randip Leon K S",
   "repository": {

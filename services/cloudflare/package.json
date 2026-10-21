@@ -1,7 +1,7 @@
 {
   "name": "@playhub/cloudflare",
   "description": "Run a playhub hub on Cloudflare: a Durable Object hosting the registry, speaking the playhub protocol over WebSocket.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "author": "Maria Randip Leon K S",
   "repository": {
