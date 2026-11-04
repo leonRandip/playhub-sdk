@@ -15,7 +15,7 @@
     "hub-load": "pnpm --filter @playhub/hub load"
   },
   "devDependencies": {
-    "prettier": "3.9.9",
+    "prettier": "3.9.10",
     "typescript": "6.0.3"
   },
   "description": "The multiplayer SDK for your vibe-coded web games: lobbies, room codes, WebRTC peer-to-peer and TURN, self-hosted or on Cloudflare.",
